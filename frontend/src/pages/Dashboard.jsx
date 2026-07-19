@@ -8,11 +8,13 @@ const loanFormInitial = {
   amount: '',
   tenureMonths: '',
   purpose: '',
+  assignedAdminId: '',
 };
 
 export function Dashboard() {
   const { user, logout } = useAuth();
   const [loans, setLoans] = useState([]);
+  const [admins, setAdmins] = useState([]);
   const [loanForm, setLoanForm] = useState(loanFormInitial);
   const [decisionNotes, setDecisionNotes] = useState({});
   const [busy, setBusy] = useState(false);
@@ -28,8 +30,20 @@ export function Dashboard() {
     }
   }
 
+  async function loadAdmins() {
+    try {
+      const response = await api.getAdmins();
+      setAdmins(response);
+    } catch (err) {
+      setError(err.message);
+    }
+  }
+
   useEffect(() => {
     loadLoans();
+    if (!user || user.role !== 'ADMIN') {
+      loadAdmins();
+    }
   }, []);
 
   const stats = useMemo(() => {
@@ -48,6 +62,7 @@ export function Dashboard() {
         amount: Number(loanForm.amount),
         tenureMonths: Number(loanForm.tenureMonths),
         purpose: loanForm.purpose,
+        assignedAdminId: Number(loanForm.assignedAdminId),
       });
       setLoanForm(loanFormInitial);
       await loadLoans();
@@ -105,6 +120,21 @@ export function Dashboard() {
           <form className="panel form-panel" onSubmit={handleApply}>
             <h3><FiSend /> Apply for a loan</h3>
             <label>
+              <span><FiUsers /> Assign to admin</span>
+              <select
+                value={loanForm.assignedAdminId || ''}
+                onChange={(event) => setLoanForm((current) => ({ ...current, assignedAdminId: event.target.value }))}
+                required
+              >
+                <option value="">Select an admin</option>
+                {admins.map((admin) => (
+                  <option key={admin.id} value={admin.id}>
+                    {admin.fullName}{admin.organizationName ? ` - ${admin.organizationName}` : ''}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
               <span><FiDollarSign /> Amount</span>
               <input
                 type="number"
@@ -147,11 +177,13 @@ export function Dashboard() {
       {isAdmin && (
         <section className="panel table-panel admin-panel">
           <h3><FiUsers /> All applications</h3>
+          {user?.organizationName && <p className="portal-summary">Organization: {user.organizationName}</p>}
           <div className="table-wrap">
             <table>
               <thead>
                 <tr>
                   <th>Customer</th>
+                  <th>Assigned admin</th>
                   <th>Amount</th>
                   <th>Tenure</th>
                   <th>Purpose</th>
@@ -166,6 +198,10 @@ export function Dashboard() {
                     <td>
                       <strong>{loan.customerName}</strong>
                       <span>{loan.customerEmail}</span>
+                    </td>
+                    <td>
+                      <strong>{loan.assignedAdminName}</strong>
+                      <span>{loan.assignedAdminOrganizationName || '-'}</span>
                     </td>
                     <td>${Number(loan.amount).toFixed(2)}</td>
                     <td>{loan.tenureMonths} months</td>
@@ -222,6 +258,7 @@ function LoanTable({ loans }) {
             </div>
             <StatusBadge status={loan.status} />
           </div>
+          <small>Assigned to {loan.assignedAdminName}{loan.assignedAdminOrganizationName ? ` - ${loan.assignedAdminOrganizationName}` : ''}</small>
           <p>{loan.purpose}</p>
           <small>Submitted {new Date(loan.submittedAt).toLocaleString()}</small>
           {loan.decisionReason && <small>Decision note: {loan.decisionReason}</small>}

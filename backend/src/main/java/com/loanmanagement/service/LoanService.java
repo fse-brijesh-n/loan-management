@@ -11,25 +11,37 @@ import com.loanmanagement.dto.AuthDtos.LoanDecisionRequest;
 import com.loanmanagement.dto.AuthDtos.LoanResponse;
 import com.loanmanagement.entity.LoanApplication;
 import com.loanmanagement.entity.LoanStatus;
+import com.loanmanagement.entity.Role;
 import com.loanmanagement.entity.User;
 import com.loanmanagement.repository.LoanApplicationRepository;
+import com.loanmanagement.repository.UserRepository;
 
 @Service
+@SuppressWarnings("null")
 public class LoanService {
 
     private final LoanApplicationRepository loanRepository;
+    private final UserRepository userRepository;
 
-    public LoanService(LoanApplicationRepository loanRepository) {
+    public LoanService(LoanApplicationRepository loanRepository, UserRepository userRepository) {
         this.loanRepository = loanRepository;
+        this.userRepository = userRepository;
     }
 
     @Transactional
     public LoanResponse apply(User customer, LoanApplicationRequest request) {
+        User assignedAdmin = userRepository.findById(request.assignedAdminId())
+                .orElseThrow(() -> new IllegalArgumentException("Assigned admin not found"));
+        if (assignedAdmin.getRole() != Role.ADMIN) {
+            throw new IllegalArgumentException("Assigned user must be an admin");
+        }
+
         LoanApplication application = new LoanApplication();
         application.setCustomer(customer);
         application.setAmount(request.amount());
         application.setTenureMonths(request.tenureMonths());
         application.setPurpose(request.purpose());
+        application.setAssignedAdmin(assignedAdmin);
         application.setStatus(LoanStatus.PENDING);
         return toResponse(loanRepository.save(application));
     }
@@ -37,7 +49,7 @@ public class LoanService {
     @Transactional(readOnly = true)
     public List<LoanResponse> getLoansForUser(User user) {
         if (user.getRole() == null || user.getRole().name().equals("ADMIN")) {
-            return loanRepository.findAllByOrderBySubmittedAtDesc().stream().map(this::toResponse).toList();
+            return loanRepository.findByAssignedAdminOrderBySubmittedAtDesc(user).stream().map(this::toResponse).toList();
         }
         return loanRepository.findByCustomerOrderBySubmittedAtDesc(user).stream().map(this::toResponse).toList();
     }
@@ -46,6 +58,9 @@ public class LoanService {
     public LoanResponse approve(Long loanId, User admin, LoanDecisionRequest request) {
         LoanApplication application = loanRepository.findById(loanId)
                 .orElseThrow(() -> new IllegalArgumentException("Loan application not found"));
+        if (application.getAssignedAdmin() == null || !application.getAssignedAdmin().getId().equals(admin.getId())) {
+            throw new IllegalArgumentException("Loan is not assigned to this admin");
+        }
         if (application.getStatus() != LoanStatus.PENDING) {
             throw new IllegalArgumentException("Only pending applications can be reviewed");
         }
@@ -60,6 +75,9 @@ public class LoanService {
     public LoanResponse reject(Long loanId, User admin, LoanDecisionRequest request) {
         LoanApplication application = loanRepository.findById(loanId)
                 .orElseThrow(() -> new IllegalArgumentException("Loan application not found"));
+        if (application.getAssignedAdmin() == null || !application.getAssignedAdmin().getId().equals(admin.getId())) {
+            throw new IllegalArgumentException("Loan is not assigned to this admin");
+        }
         if (application.getStatus() != LoanStatus.PENDING) {
             throw new IllegalArgumentException("Only pending applications can be reviewed");
         }
@@ -76,6 +94,9 @@ public class LoanService {
                 application.getCustomer().getId(),
                 application.getCustomer().getFullName(),
                 application.getCustomer().getEmail(),
+                application.getAssignedAdmin() == null ? null : application.getAssignedAdmin().getId(),
+                application.getAssignedAdmin() == null ? null : application.getAssignedAdmin().getFullName(),
+                application.getAssignedAdmin() == null ? null : application.getAssignedAdmin().getOrganizationName(),
                 application.getAmount(),
                 application.getTenureMonths(),
                 application.getPurpose(),

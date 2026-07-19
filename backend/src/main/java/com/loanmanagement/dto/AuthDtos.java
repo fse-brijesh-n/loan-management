@@ -20,12 +20,15 @@ public final class AuthDtos {
     public record RegisterRequest(
             @NotBlank String fullName,
             @Email @NotBlank String email,
-            @Size(min = 8, message = "Password must be at least 8 characters") String password) {
+            @Size(min = 8, message = "Password must be at least 8 characters") String password,
+            @NotNull Role role,
+            String organizationName) {
     }
 
     public record LoginRequest(
             @Email @NotBlank String email,
-            @NotBlank String password) {
+            @NotBlank String password,
+            @NotNull Role role) {
     }
 
     public record AuthResponse(
@@ -34,13 +37,15 @@ public final class AuthDtos {
             Long userId,
             String fullName,
             String email,
-            Role role) {
+            Role role,
+            String organizationName) {
     }
 
     public record LoanApplicationRequest(
             @NotNull @Positive BigDecimal amount,
             @NotNull @Positive Integer tenureMonths,
-            @NotBlank @Size(max = 1000) String purpose) {
+            @NotBlank @Size(max = 1000) String purpose,
+            @NotNull Long assignedAdminId) {
     }
 
     public record LoanDecisionRequest(
@@ -52,6 +57,9 @@ public final class AuthDtos {
             Long customerId,
             String customerName,
             String customerEmail,
+            Long assignedAdminId,
+            String assignedAdminName,
+            String assignedAdminOrganizationName,
             BigDecimal amount,
             Integer tenureMonths,
             String purpose,
@@ -62,5 +70,12 @@ public final class AuthDtos {
             Instant decidedAt,
             Long reviewedById,
             String reviewedByName) {
+    }
+
+    public record AdminSummary(
+            Long id,
+            String fullName,
+            String email,
+            String organizationName) {
     }
 }

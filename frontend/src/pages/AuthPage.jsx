@@ -1,11 +1,13 @@
 import { useState } from 'react';
-import { FiLogIn, FiUserPlus, FiShield, FiMail, FiLock, FiUser } from 'react-icons/fi';
+import { FiLogIn, FiUserPlus, FiShield, FiMail, FiLock, FiUser, FiCheckCircle, FiFileText, FiClock } from 'react-icons/fi';
 import { useAuth } from '../context/AuthContext';
 
 const initialForm = {
   fullName: '',
   email: '',
   password: '',
+  role: 'CUSTOMER',
+  organizationName: '',
 };
 
 export function AuthPage() {
@@ -21,7 +23,7 @@ export function AuthPage() {
     setLoading(true);
     try {
       if (mode === 'login') {
-        await login({ email: form.email, password: form.password });
+        await login({ email: form.email, password: form.password, role: form.role });
       } else {
         await register(form);
       }
@@ -35,60 +37,79 @@ export function AuthPage() {
   return (
     <div className="auth-shell">
       <section className="hero-panel">
-        <div className="eyebrow">
-          <FiShield />
-          Secure lending workspace
-        </div>
-        <h1>Loan operations with approval control, JWT security, and H2-backed speed.</h1>
-        <p>
-          Customers apply for loans, administrators review each application, and every request is
-          protected by role-aware Spring Security.
-        </p>
-        <div className="hero-stats">
-          <div>
-            <strong>JWT</strong>
-            <span>Authentication</span>
+        <div className="portal-header">
+          <div className="portal-mark">
+            <FiShield />
           </div>
           <div>
-            <strong>Admin</strong>
-            <span>Approve / Reject</span>
-          </div>
-          <div>
-            <strong>Swagger</strong>
-            <span>API exploration</span>
+            <div className="portal-kicker">Public Loan Services</div>
+            <h1>Loan Services Portal</h1>
           </div>
         </div>
+
+        <p className="portal-summary">Secure access for loan applications, account access, and review workflows.</p>
+
+        <ul className="service-list">
+          <li><FiFileText /> Submit loan applications</li>
+          <li><FiClock /> Track application status</li>
+          <li><FiCheckCircle /> Review and decision workflow</li>
+        </ul>
+
+        <div className="portal-footnote">Authenticated access only</div>
       </section>
 
       <section className="auth-card">
         <div className="auth-toggle">
-          <button className={mode === 'login' ? 'active' : ''} onClick={() => setMode('login')}>
+          <button type="button" className={mode === 'login' ? 'active' : ''} onClick={() => setMode('login')}>
             <FiLogIn /> Sign in
           </button>
-          <button className={mode === 'register' ? 'active' : ''} onClick={() => setMode('register')}>
-            <FiUserPlus /> Create account
+          <button type="button" className={mode === 'register' ? 'active' : ''} onClick={() => setMode('register')}>
+            <FiUserPlus /> Register
           </button>
         </div>
 
         <form className="auth-form" onSubmit={handleSubmit}>
           {mode === 'register' && (
             <label>
-              <span><FiUser /> Full name</span>
+              <span><FiUser /> Applicant name</span>
               <input
                 value={form.fullName}
                 onChange={(event) => setForm((current) => ({ ...current, fullName: event.target.value }))}
-                placeholder="Jordan Lee"
+                placeholder="Enter full name"
               />
             </label>
           )}
 
           <label>
-            <span><FiMail /> Email</span>
+            <span><FiShield /> Account type</span>
+            <select
+              value={form.role}
+              onChange={(event) => setForm((current) => ({ ...current, role: event.target.value }))}
+            >
+              <option value="CUSTOMER">Customer account</option>
+              <option value="ADMIN">Admin account</option>
+            </select>
+            <small className="field-hint">Select the same account type you used to register.</small>
+          </label>
+
+          {mode === 'register' && form.role === 'ADMIN' && (
+            <label>
+              <span><FiShield /> Organization name</span>
+              <input
+                value={form.organizationName}
+                onChange={(event) => setForm((current) => ({ ...current, organizationName: event.target.value }))}
+                placeholder="Organization or branch name"
+              />
+            </label>
+          )}
+
+          <label>
+            <span><FiMail /> Email address</span>
             <input
               type="email"
               value={form.email}
               onChange={(event) => setForm((current) => ({ ...current, email: event.target.value }))}
-              placeholder="user@example.com"
+              placeholder="name@example.com"
             />
           </label>
 
@@ -98,21 +119,16 @@ export function AuthPage() {
               type="password"
               value={form.password}
               onChange={(event) => setForm((current) => ({ ...current, password: event.target.value }))}
-              placeholder="••••••••"
+              placeholder="Enter password"
             />
           </label>
 
           {error && <div className="error-banner">{error}</div>}
 
           <button className="primary-button" type="submit" disabled={loading}>
-            {loading ? 'Please wait...' : mode === 'login' ? 'Sign in' : 'Create account'}
+            {loading ? 'Processing...' : mode === 'login' ? 'Sign in' : 'Register'}
           </button>
         </form>
-
-        <div className="demo-note">
-          <strong>Demo admin</strong>
-          <span>admin@loan.com / Admin@123</span>
-        </div>
       </section>
     </div>
   );

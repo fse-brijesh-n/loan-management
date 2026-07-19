@@ -59,7 +59,7 @@ class AuthServiceTest {
 
     @Test
     void registerCreatesCustomerAndReturnsToken() {
-        RegisterRequest request = new RegisterRequest("John Doe", "john@example.com", "Password@123");
+        RegisterRequest request = new RegisterRequest("John Doe", "john@example.com", "Password@123", Role.CUSTOMER, null);
 
         when(userRepository.existsByEmail("john@example.com")).thenReturn(false);
         when(passwordEncoder.encode("Password@123")).thenReturn("encoded-password");
@@ -75,8 +75,27 @@ class AuthServiceTest {
     }
 
     @Test
+    void registerCreatesAdminAndReturnsToken() {
+        savedUser.setFullName("Admin User");
+        savedUser.setEmail("admin@example.com");
+        savedUser.setRole(Role.ADMIN);
+        RegisterRequest request = new RegisterRequest("Admin User", "admin@example.com", "Password@123", Role.ADMIN, "Finance Department");
+
+        when(userRepository.existsByEmail("admin@example.com")).thenReturn(false);
+        when(passwordEncoder.encode("Password@123")).thenReturn("encoded-password");
+        when(userRepository.save(org.mockito.ArgumentMatchers.<User>any())).thenReturn(savedUser);
+        when(jwtService.generateToken(any(User.class), anyMap())).thenReturn("jwt-token");
+
+        AuthResponse response = authService.register(request);
+
+        assertEquals("jwt-token", response.token());
+        assertEquals(Role.ADMIN, response.role());
+        assertEquals("admin@example.com", response.email());
+    }
+
+    @Test
     void registerRejectsDuplicateEmail() {
-        RegisterRequest request = new RegisterRequest("John Doe", "john@example.com", "Password@123");
+        RegisterRequest request = new RegisterRequest("John Doe", "john@example.com", "Password@123", Role.CUSTOMER, null);
         when(userRepository.existsByEmail("john@example.com")).thenReturn(true);
 
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> authService.register(request));
@@ -86,7 +105,7 @@ class AuthServiceTest {
 
     @Test
     void loginAuthenticatesAndReturnsToken() {
-        LoginRequest request = new LoginRequest("john@example.com", "Password@123");
+        LoginRequest request = new LoginRequest("john@example.com", "Password@123", Role.CUSTOMER);
 
         when(userRepository.findByEmail("john@example.com")).thenReturn(Optional.of(savedUser));
         when(jwtService.generateToken(any(User.class), anyMap())).thenReturn("jwt-token");
@@ -96,5 +115,34 @@ class AuthServiceTest {
         assertEquals("jwt-token", response.token());
         assertEquals(savedUser.getId(), response.userId());
         verify(authenticationManager).authenticate(new UsernamePasswordAuthenticationToken("john@example.com", "Password@123"));
+    }
+
+    @Test
+    void loginReturnsAdminAccessWhenAdminRoleSelected() {
+        savedUser.setFullName("Admin User");
+        savedUser.setEmail("admin@example.com");
+        savedUser.setRole(Role.ADMIN);
+        LoginRequest request = new LoginRequest("admin@example.com", "Password@123", Role.ADMIN);
+
+        when(userRepository.findByEmail("admin@example.com")).thenReturn(Optional.of(savedUser));
+        when(jwtService.generateToken(any(User.class), anyMap())).thenReturn("jwt-token");
+
+        AuthResponse response = authService.login(request);
+
+        assertEquals("jwt-token", response.token());
+        assertEquals(Role.ADMIN, response.role());
+        assertEquals("admin@example.com", response.email());
+    }
+
+    @Test
+    void loginRejectsWrongRoleSelection() {
+        LoginRequest request = new LoginRequest("john@example.com", "Password@123", Role.ADMIN);
+
+        when(userRepository.findByEmail("john@example.com")).thenReturn(Optional.of(savedUser));
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> authService.login(request));
+
+        assertEquals("Invalid credentials", exception.getMessage());
     }
 }

@@ -32,17 +32,23 @@ export function AuthProvider({ children }) {
     isAuthenticated: Boolean(token),
     async login(credentials) {
       const response = await api.login(credentials);
+      localStorage.setItem('lm_token', response.token);
+      localStorage.setItem('lm_user', JSON.stringify(response));
       setToken(response.token);
       setUser(response);
       return response;
     },
     async register(payload) {
       const response = await api.register(payload);
+      localStorage.setItem('lm_token', response.token);
+      localStorage.setItem('lm_user', JSON.stringify(response));
       setToken(response.token);
       setUser(response);
       return response;
     },
     logout() {
+      localStorage.removeItem('lm_token');
+      localStorage.removeItem('lm_user');
       setToken(null);
       setUser(null);
     },

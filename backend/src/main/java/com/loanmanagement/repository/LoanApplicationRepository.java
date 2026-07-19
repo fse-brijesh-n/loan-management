@@ -12,6 +12,8 @@ public interface LoanApplicationRepository extends JpaRepository<LoanApplication
 
     List<LoanApplication> findByCustomerOrderBySubmittedAtDesc(User customer);
 
+    List<LoanApplication> findByAssignedAdminOrderBySubmittedAtDesc(User assignedAdmin);
+
     List<LoanApplication> findAllByOrderBySubmittedAtDesc();
 
     List<LoanApplication> findByStatusOrderBySubmittedAtDesc(LoanStatus status);

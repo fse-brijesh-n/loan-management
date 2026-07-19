@@ -27,6 +27,7 @@ public class DataInitializer implements CommandLineRunner {
             admin.setEmail("admin@loan.com");
             admin.setPassword(passwordEncoder.encode("Admin@123"));
             admin.setRole(Role.ADMIN);
+            admin.setOrganizationName("Central Loans Office");
             return userRepository.save(admin);
         });
     }

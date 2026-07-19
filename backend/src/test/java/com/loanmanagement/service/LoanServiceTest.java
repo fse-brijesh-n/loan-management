@@ -24,6 +24,7 @@ import com.loanmanagement.entity.LoanStatus;
 import com.loanmanagement.entity.Role;
 import com.loanmanagement.entity.User;
 import com.loanmanagement.repository.LoanApplicationRepository;
+import com.loanmanagement.repository.UserRepository;
 
 @ExtendWith(MockitoExtension.class)
 @SuppressWarnings("null")
@@ -31,6 +32,9 @@ class LoanServiceTest {
 
     @Mock
     private LoanApplicationRepository loanRepository;
+
+    @Mock
+    private UserRepository userRepository;
 
     @InjectMocks
     private LoanService loanService;
@@ -55,9 +59,10 @@ class LoanServiceTest {
 
     @Test
     void applyCreatesPendingLoan() {
-        LoanApplicationRequest request = new LoanApplicationRequest(new BigDecimal("25000.00"), 24, "Home renovation");
+        LoanApplicationRequest request = new LoanApplicationRequest(new BigDecimal("25000.00"), 24, "Home renovation", admin.getId());
         LoanApplication saved = buildLoan(1L, customer, LoanStatus.PENDING, request.amount(), request.tenureMonths(), request.purpose());
         when(loanRepository.save(org.mockito.ArgumentMatchers.<LoanApplication>any())).thenReturn(saved);
+        when(userRepository.findById(admin.getId())).thenReturn(Optional.of(admin));
 
         LoanResponse response = loanService.apply(customer, request);
 
@@ -105,7 +110,7 @@ class LoanServiceTest {
     @Test
     void adminSeesAllLoans() {
         LoanApplication loan = buildLoan(5L, customer, LoanStatus.REJECTED, new BigDecimal("5000.00"), 6, "Inventory");
-        when(loanRepository.findAllByOrderBySubmittedAtDesc()).thenReturn(List.of(loan));
+        when(loanRepository.findByAssignedAdminOrderBySubmittedAtDesc(admin)).thenReturn(List.of(loan));
 
         List<LoanResponse> responses = loanService.getLoansForUser(admin);
 
@@ -117,6 +122,7 @@ class LoanServiceTest {
         LoanApplication application = new LoanApplication();
         application.setId(id);
         application.setCustomer(owner);
+        application.setAssignedAdmin(admin);
         application.setStatus(status);
         application.setAmount(amount);
         application.setTenureMonths(tenure);

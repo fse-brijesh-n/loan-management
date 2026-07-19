@@ -1,18 +1,20 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Inter:wght@400;500;600;700;800&display=swap');
+
 :root {
   color-scheme: dark;
   font-family: Inter, "Segoe UI", system-ui, sans-serif;
   --bg: #07111f;
   --bg-soft: #0d1b2d;
-  --panel: rgba(9, 20, 35, 0.82);
-  --panel-border: rgba(167, 199, 255, 0.14);
-  --text: #eef4ff;
-  --muted: #93a6c7;
-  --primary: #67c7ff;
-  --primary-strong: #2ea8ff;
-  --accent: #f7b955;
+  --panel: rgba(11, 19, 31, 0.9);
+  --panel-border: rgba(218, 226, 237, 0.14);
+  --text: #f4f0e8;
+  --muted: #c8c0b3;
+  --primary: #d9b85a;
+  --primary-strong: #f0d98a;
+  --accent: #d9b85a;
   --success: #31c48d;
   --danger: #fb7185;
-  --shadow: 0 24px 80px rgba(0, 0, 0, 0.38);
+  --shadow: 0 26px 80px rgba(0, 0, 0, 0.4);
 }
 
 * {
@@ -23,9 +25,9 @@ body {
   margin: 0;
   min-height: 100vh;
   background:
-    radial-gradient(circle at top left, rgba(46, 168, 255, 0.18), transparent 28%),
-    radial-gradient(circle at right 20%, rgba(247, 185, 85, 0.14), transparent 25%),
-    linear-gradient(135deg, #04101d 0%, #07111f 45%, #0d1b2d 100%);
+    radial-gradient(circle at top left, rgba(217, 184, 90, 0.16), transparent 24%),
+    radial-gradient(circle at right 20%, rgba(240, 217, 138, 0.08), transparent 22%),
+    linear-gradient(135deg, #04101d 0%, #081424 45%, #101b2b 100%);
   color: var(--text);
 }
 
@@ -71,42 +73,127 @@ button {
   background: var(--panel);
   border: 1px solid var(--panel-border);
   box-shadow: var(--shadow);
-  backdrop-filter: blur(16px);
+  backdrop-filter: blur(10px);
 }
 
 .hero-panel,
 .auth-card {
-  border-radius: 28px;
+  border-radius: 24px;
   padding: 32px;
 }
 
 .hero-panel {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  gap: 24px;
+  justify-content: center;
+  gap: 22px;
   overflow: hidden;
   position: relative;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 35%),
+    var(--panel);
 }
 
 .hero-panel h1 {
   margin: 0;
-  font-size: clamp(2.4rem, 5vw, 4.8rem);
-  line-height: 0.98;
-  letter-spacing: -0.04em;
-  max-width: 12ch;
+  font-family: Cinzel, Georgia, serif;
+  font-size: clamp(2.2rem, 4.8vw, 4.2rem);
+  line-height: 1.02;
+  letter-spacing: 0.02em;
+  max-width: 14ch;
+  text-transform: uppercase;
 }
 
 .hero-panel p,
 .topbar p,
 .loan-card p,
 .loan-card small,
-.demo-note span,
 .empty-state,
 .auth-card label span,
 .loan-card span,
 .table-panel td span {
   color: var(--muted);
+}
+
+.portal-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.portal-mark {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 1px solid rgba(217, 184, 90, 0.35);
+  background: rgba(217, 184, 90, 0.12);
+  display: grid;
+  place-items: center;
+  color: #f4ddb0;
+  font-size: 1.35rem;
+  flex: 0 0 auto;
+}
+
+.portal-kicker {
+  color: #d9b85a;
+  font-size: 0.8rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.portal-summary {
+  margin: 0;
+  max-width: 36ch;
+  font-size: 1.05rem;
+  line-height: 1.6;
+}
+
+.service-list {
+  list-style: none;
+  padding: 0;
+  margin: 6px 0 0;
+  display: grid;
+  gap: 12px;
+}
+
+.service-list li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: #efe7d9;
+}
+
+.service-list svg {
+  color: #d9b85a;
+  flex: 0 0 auto;
+}
+
+select {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(217, 226, 237, 0.16);
+  background: rgba(3, 9, 18, 0.78);
+  color: var(--text);
+  outline: none;
+}
+
+select:focus {
+  border-color: rgba(217, 184, 90, 0.65);
+  box-shadow: 0 0 0 3px rgba(217, 184, 90, 0.12);
+}
+
+.portal-footnote {
+  margin-top: 4px;
+  font-size: 0.82rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #b9b29f;
 }
 
 .eyebrow {
@@ -116,35 +203,22 @@ button {
   width: fit-content;
   padding: 10px 14px;
   border-radius: 999px;
-  background: rgba(103, 199, 255, 0.12);
-  color: #cfe9ff;
+  background: rgba(217, 184, 90, 0.12);
+  color: #f6e4b6;
   font-size: 0.92rem;
   letter-spacing: 0.02em;
 }
 
 .eyebrow.subtle {
-  background: rgba(247, 185, 85, 0.1);
-  color: #ffe7bc;
+  background: rgba(217, 184, 90, 0.1);
+  color: #f6e4b6;
 }
 
-.hero-stats {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px;
-}
-
-.hero-stats div,
 .stats-grid article {
   border-radius: 20px;
   padding: 18px;
 }
 
-.hero-stats div {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-.hero-stats strong,
 .stats-grid strong,
 .loan-card strong {
   display: block;
@@ -180,11 +254,12 @@ button {
 .auth-toggle button {
   background: rgba(255, 255, 255, 0.05);
   color: var(--muted);
+  border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .auth-toggle button.active {
-  background: linear-gradient(135deg, var(--primary-strong), var(--primary));
-  color: #00111f;
+  background: linear-gradient(135deg, #d9b85a, #f0d98a);
+  color: #1d1708;
 }
 
 .auth-form {
@@ -206,6 +281,12 @@ button {
   font-size: 0.92rem;
 }
 
+.field-hint {
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.4;
+}
+
 .auth-form input,
 .auth-form textarea,
 .form-panel input,
@@ -214,7 +295,7 @@ button {
   width: 100%;
   padding: 14px 16px;
   border-radius: 14px;
-  border: 1px solid rgba(168, 200, 255, 0.16);
+  border: 1px solid rgba(217, 226, 237, 0.16);
   background: rgba(3, 9, 18, 0.78);
   color: var(--text);
   outline: none;
@@ -225,14 +306,16 @@ button {
 .form-panel input:focus,
 .form-panel textarea:focus,
 .inline-input:focus {
-  border-color: rgba(103, 199, 255, 0.65);
-  box-shadow: 0 0 0 3px rgba(103, 199, 255, 0.12);
+  border-color: rgba(217, 184, 90, 0.65);
+  box-shadow: 0 0 0 3px rgba(217, 184, 90, 0.12);
 }
 
 .primary-button {
-  background: linear-gradient(135deg, var(--accent), #ffd892);
-  color: #1b1303;
+  background: linear-gradient(135deg, #d9b85a, #f0d98a);
+  color: #1d1708;
   font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
 }
 
 .secondary-button {
@@ -246,16 +329,6 @@ button {
   background: rgba(251, 113, 133, 0.14);
   border: 1px solid rgba(251, 113, 133, 0.3);
   color: #ffd1d9;
-}
-
-.demo-note {
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  align-items: center;
-  padding: 14px 16px;
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.04);
 }
 
 .dashboard-shell {
@@ -436,14 +509,13 @@ th {
     padding: 20px;
   }
 
-  .hero-stats,
   .stats-grid {
     grid-template-columns: 1fr;
   }
 
   .topbar,
   .loan-card__header,
-  .demo-note {
+  .portal-header {
     flex-direction: column;
     align-items: flex-start;
   }

@@ -37,6 +37,10 @@ public class LoanApplication {
     @Column(nullable = false, length = 1000)
     private String purpose;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "assigned_admin_id", nullable = false)
+    private User assignedAdmin;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private LoanStatus status = LoanStatus.PENDING;
@@ -101,6 +105,14 @@ public class LoanApplication {
 
     public void setPurpose(String purpose) {
         this.purpose = purpose;
+    }
+
+    public User getAssignedAdmin() {
+        return assignedAdmin;
+    }
+
+    public void setAssignedAdmin(User assignedAdmin) {
+        this.assignedAdmin = assignedAdmin;
     }
 
     public LoanStatus getStatus() {

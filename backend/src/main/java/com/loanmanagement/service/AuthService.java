@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 import com.loanmanagement.dto.AuthDtos.AuthResponse;
 import com.loanmanagement.dto.AuthDtos.LoginRequest;
 import com.loanmanagement.dto.AuthDtos.RegisterRequest;
-import com.loanmanagement.entity.Role;
 import com.loanmanagement.entity.User;
 import com.loanmanagement.repository.UserRepository;
 
@@ -35,11 +34,16 @@ public class AuthService {
             throw new IllegalArgumentException("Email is already registered");
         }
 
+        if (request.role() == com.loanmanagement.entity.Role.ADMIN && (request.organizationName() == null || request.organizationName().isBlank())) {
+            throw new IllegalArgumentException("Organization name is required for admin registration");
+        }
+
         User user = new User();
         user.setFullName(request.fullName());
         user.setEmail(request.email().toLowerCase());
         user.setPassword(passwordEncoder.encode(request.password()));
-        user.setRole(Role.CUSTOMER);
+        user.setRole(request.role());
+        user.setOrganizationName(request.organizationName());
         User saved = userRepository.save(user);
         String token = jwtService.generateToken(saved, Map.of("role", saved.getRole().name()));
         return toResponse(saved, token);
@@ -51,11 +55,14 @@ public class AuthService {
                 new UsernamePasswordAuthenticationToken(email, request.password()));
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid credentials"));
+        if (user.getRole() != request.role()) {
+            throw new IllegalArgumentException("Invalid credentials");
+        }
         String token = jwtService.generateToken(user, Map.of("role", user.getRole().name()));
         return toResponse(user, token);
     }
 
     private AuthResponse toResponse(User user, String token) {
-        return new AuthResponse(token, "Bearer", user.getId(), user.getFullName(), user.getEmail(), user.getRole());
+        return new AuthResponse(token, "Bearer", user.getId(), user.getFullName(), user.getEmail(), user.getRole(), user.getOrganizationName());
     }
 }
