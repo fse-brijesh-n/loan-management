@@ -1,4 +1,4 @@
-# Loan Management REST API Documentation (MERN Stack + MongoDB)
+# Loan Management REST API Backend Documentation (MERN Stack + MongoDB)
 
 This documentation describes how to implement the equivalent Loan Management APIs in a MERN Stack (MongoDB, Express.js, React.js, Node.js).
 
@@ -390,4 +390,583 @@ router.put("/:loanId/reject", verifyToken, authorize("ADMIN"), rejectLoan);
 export default router;
 ```
 
-This design mirrors the behavior of your Spring Boot `LoanController`, while following common MERN conventions with Express routing, JWT-based authentication, Mongoose models, and role-based authorization.
+# MERN Frontend Documentation (React.js)
+
+This frontend documentation maps directly to the Loan Management REST APIs and describes the pages, API calls, components, state management, and folder structure needed in a React application.
+
+---
+
+# Technology Stack
+
+| Technology                             | Purpose           |
+| -------------------------------------- | ----------------- |
+| React.js                               | UI Framework      |
+| React Router DOM                       | Routing           |
+| Axios                                  | API Communication |
+| Redux Toolkit / Context API            | State Management  |
+| Material UI / Bootstrap / Tailwind CSS | UI Components     |
+| JWT                                    | Authentication    |
+| React Hook Form                        | Form Handling     |
+| Yup                                    | Form Validation   |
+
+---
+
+# Frontend Folder Structure
+
+```text
+src/
+│
+├── api/
+│   ├── axios.js
+│   ├── authApi.js
+│   └── loanApi.js
+│
+├── components/
+│   ├── Navbar.jsx
+│   ├── Sidebar.jsx
+│   ├── LoanCard.jsx
+│   ├── LoanTable.jsx
+│   ├── StatusBadge.jsx
+│   └── ProtectedRoute.jsx
+│
+├── pages/
+│   ├── Login.jsx
+│   ├── Register.jsx
+│   ├── Dashboard.jsx
+│   ├── ApplyLoan.jsx
+│   ├── MyLoans.jsx
+│   ├── AdminDashboard.jsx
+│   ├── LoanDetails.jsx
+│   └── NotFound.jsx
+│
+├── context/
+│   └── AuthContext.jsx
+│
+├── hooks/
+│   └── useAuth.js
+│
+├── layouts/
+│   ├── CustomerLayout.jsx
+│   └── AdminLayout.jsx
+│
+├── services/
+│   └── tokenService.js
+│
+├── routes/
+│   └── AppRoutes.jsx
+│
+├── utils/
+│
+├── App.jsx
+└── main.jsx
+```
+
+---
+
+# Pages
+
+## 1. Login Page
+
+### Purpose
+
+Authenticate user.
+
+### API
+
+```http
+POST /api/auth/login
+```
+
+### Fields
+
+| Field    | Type     |
+| -------- | -------- |
+| email    | String   |
+| password | Password |
+
+### Success
+
+Store
+
+* JWT Token
+* User
+* Role
+
+Navigate
+
+```text
+CUSTOMER → Dashboard
+
+ADMIN → Admin Dashboard
+```
+
+---
+
+# 2. Dashboard
+
+### Customer Dashboard
+
+Display
+
+* Welcome User
+* Loan Summary
+* Pending Loans
+* Approved Loans
+* Rejected Loans
+
+Cards
+
+```
+Total Loans
+
+Pending
+
+Approved
+
+Rejected
+```
+
+Buttons
+
+```
+Apply Loan
+
+View My Loans
+```
+
+---
+
+# 3. Apply Loan Page
+
+### API
+
+```http
+POST /api/loans
+```
+
+### Form Fields
+
+| Field         | Component    |
+| ------------- | ------------ |
+| Loan Amount   | Number Input |
+| Loan Type     | Dropdown     |
+| Tenure        | Number       |
+| Annual Income | Number       |
+| Purpose       | TextArea     |
+
+Loan Types
+
+```
+HOME
+
+CAR
+
+PERSONAL
+
+BUSINESS
+
+EDUCATION
+```
+
+### Validation
+
+Loan Amount
+
+```
+Required
+
+Greater than 0
+```
+
+Annual Income
+
+```
+Required
+```
+
+Purpose
+
+```
+Minimum 10 characters
+```
+
+### Submit
+
+```javascript
+axios.post("/api/loans", formData)
+```
+
+### Success Message
+
+```
+Loan Applied Successfully
+```
+
+Redirect
+
+```
+My Loans
+```
+
+---
+
+# 4. My Loans
+
+### API
+
+```http
+GET /api/loans
+```
+
+Display
+
+| Loan Type | Amount | Status | Created Date |
+| --------- | ------ | ------ | ------------ |
+
+Status Colors
+
+| Status   | Color  |
+| -------- | ------ |
+| Pending  | Yellow |
+| Approved | Green  |
+| Rejected | Red    |
+
+---
+
+# 5. Loan Details Page
+
+Shows
+
+```
+Loan Amount
+
+Loan Type
+
+Tenure
+
+Income
+
+Purpose
+
+Status
+
+Remarks
+
+Created Date
+```
+
+---
+
+# Admin Dashboard
+
+### API
+
+```
+GET /api/loans
+```
+
+Display
+
+All Loans
+
+Table
+
+| Customer | Loan Type | Amount | Status | Action |
+
+Buttons
+
+```
+Approve
+
+Reject
+
+View
+```
+
+---
+
+# Approve Loan
+
+### API
+
+```http
+PUT /api/loans/{loanId}/approve
+```
+
+Popup
+
+```
+Remarks
+```
+
+Submit
+
+```javascript
+axios.put(`/api/loans/${loanId}/approve`, {
+ remarks
+});
+```
+
+---
+
+# Reject Loan
+
+### API
+
+```http
+PUT /api/loans/{loanId}/reject
+```
+
+Popup
+
+```
+Remarks
+```
+
+Submit
+
+```javascript
+axios.put(`/api/loans/${loanId}/reject`, {
+ remarks
+});
+```
+
+---
+
+# Axios Configuration
+
+```javascript
+import axios from "axios";
+
+const api = axios.create({
+  baseURL: "http://localhost:5000/api"
+});
+
+api.interceptors.request.use((config) => {
+
+  const token = localStorage.getItem("token");
+
+  if(token){
+      config.headers.Authorization = `Bearer ${token}`;
+  }
+
+  return config;
+});
+
+export default api;
+```
+
+---
+
+# Loan API Service
+
+```javascript
+import api from "./axios";
+
+export const applyLoan = (data) =>
+    api.post("/loans", data);
+
+export const getLoans = () =>
+    api.get("/loans");
+
+export const approveLoan = (id, remarks) =>
+    api.put(`/loans/${id}/approve`, remarks);
+
+export const rejectLoan = (id, remarks) =>
+    api.put(`/loans/${id}/reject`, remarks);
+```
+
+---
+
+# React Router
+
+```javascript
+<Route path="/dashboard" element={<Dashboard />} />
+
+<Route path="/apply-loan" element={<ApplyLoan />} />
+
+<Route path="/my-loans" element={<MyLoans />} />
+
+<Route path="/admin" element={<AdminDashboard />} />
+
+<Route path="/login" element={<Login />} />
+```
+
+---
+
+# Suggested Components
+
+```
+Navbar
+
+Sidebar
+
+Footer
+
+LoanCard
+
+LoanTable
+
+LoanStatus
+
+Loader
+
+ErrorMessage
+
+ProtectedRoute
+
+Pagination
+
+SearchBar
+
+ConfirmationDialog
+```
+
+---
+
+# State Management
+
+Auth State
+
+```javascript
+{
+  token:"",
+  user:{},
+  role:"",
+  isAuthenticated:false
+}
+```
+
+Loan State
+
+```javascript
+{
+  loans:[],
+  loading:false,
+  error:null
+}
+```
+
+---
+
+# Validation Rules
+
+| Field         | Rule                        |
+| ------------- | --------------------------- |
+| Loan Amount   | Required, > 0               |
+| Loan Type     | Required                    |
+| Tenure        | Required                    |
+| Annual Income | Required                    |
+| Purpose       | Required, Min 10 Characters |
+
+---
+
+# User Flow
+
+## Customer Flow
+
+```
+Login
+      │
+      ▼
+Dashboard
+      │
+      ▼
+Apply Loan
+      │
+      ▼
+Loan Created
+      │
+      ▼
+My Loans
+      │
+      ▼
+View Loan Status
+```
+
+---
+
+## Admin Flow
+
+```
+Login
+      │
+      ▼
+Admin Dashboard
+      │
+      ▼
+View Pending Loans
+      │
+      ├────────► Approve Loan
+      │
+      └────────► Reject Loan
+```
+
+---
+
+# UI Layout Recommendation
+
+### Customer Dashboard
+
+```
+----------------------------------------
+Navbar
+----------------------------------------
+
+Welcome User
+
+-----------------------------
+Total Loans
+Pending
+Approved
+Rejected
+-----------------------------
+
+[ Apply Loan ]
+
+----------------------------------------
+
+Recent Loans
+
+----------------------------------------
+```
+
+---
+
+### Admin Dashboard
+
+```
+-----------------------------------------------------
+
+Admin Dashboard
+
+-----------------------------------------------------
+
+Search Loan
+
+-----------------------------------------------------
+
+Customer | Loan | Amount | Status | Action
+
+-----------------------------------------------------
+
+John      Home    5,00,000 Pending  Approve Reject
+
+-----------------------------------------------------
+```
+
+---
+
+# API Mapping
+
+| React Page   | API Endpoint                  | Method |
+| ------------ | ----------------------------- | ------ |
+| Login        | `/api/auth/login`             | POST   |
+| Register     | `/api/auth/register`          | POST   |
+| Apply Loan   | `/api/loans`                  | POST   |
+| My Loans     | `/api/loans`                  | GET    |
+| Approve Loan | `/api/loans/{loanId}/approve` | PUT    |
+| Reject Loan  | `/api/loans/{loanId}/reject`  | PUT    |
+
+
+
